@@ -6,18 +6,30 @@ defmodule SSHnakes.TTY do
 
   defstruct [:port, :player]
 
+  # API
   def start_link(player_pid) do
     GenServer.start_link(__MODULE__, player_pid)
   end
 
+  def get_size(pid) do
+    GenServer.call(pid, :get_size)
+  end
+
+  # Implementation
   def init(player_pid) do
     port = Port.open({:spawn, "tty_sl -c -e"}, [:binary, :eof])
     {:ok, %State{port: port, player: player_pid}}
   end
 
-  # def handle_call(:get_width, from, state) do
-  #   {:reply, Impl.get_width(), state}
-  # end
+
+  def handle_call(:get_size, _from, %State{port: port} = state) do
+    # `:io.columns` / `io.lines` doesn't work here because our TTY is captured by the port, so we have to use this
+    # https://github.com/blackberry/Erlang-OTP/blob/master/lib/kernel/src/user_drv.erl#L451-L460
+    # It's not well documented :)
+    <<width::native-integer-size(32), height::native-integer-size(32)>> =  :erlang.port_control(port, 100, []) |> :binary.list_to_bin
+
+    {:reply, {width, height}, state}
+  end
 
 
   # def handle_call(:get_height, from, state) do

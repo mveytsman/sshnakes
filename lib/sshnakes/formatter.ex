@@ -2,10 +2,10 @@ defmodule SSHnakes.Formatter do
   alias IO.ANSI
   alias SSHnakes.Game
   def format_game(%Game{pellets: pellets, player: player}) do
-    [ANSI.clear] ++
-    format_pellets(pellets) ++
-    format_player(player) ++
-    [ANSI.reset,
+    [ANSI.clear,
+    format_pellets(pellets),
+    format_player(player),
+    ANSI.reset,
      ANSI.home]
   end
 

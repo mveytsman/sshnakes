@@ -1,15 +1,16 @@
 defmodule SSHnakes.Player do
-  use GenServer
+  alias __MODULE__, as: State
   alias SSHnakes.TTY
   alias SSHnakes.Formatter
   alias SSHnakes.Game
 
+  use GenServer
+
+  defstruct [:game, :tty_pid]
+
   # API
   def start_link(args) do
-    {:ok, pid} = GenServer.start_link(__MODULE__, args)
-    GenServer.start_link(TTY, pid)
-    send(pid, :print_position)
-    {:ok, pid}
+    GenServer.start_link(__MODULE__, args)
   end
 
   def move(pid, direction) do
@@ -19,18 +20,24 @@ defmodule SSHnakes.Player do
   # Implementation
 
   def init(_args) do
+    {:ok, tty_pid} = GenServer.start_link(TTY, self)
     game = Game.new
-    {:ok, game}
+
+    send(self, :print_position)
+    {:ok, %State{game: game, tty_pid: tty_pid}}
   end
 
-  def handle_cast({:move, direction}, game) do
-    {:noreply, Game.move_player(game, direction)}
+  def handle_cast({:move, direction}, %State{game: game} = state) do
+    state = %{state | game: Game.move_player(game, direction)}
+    {:noreply, state}
   end
 
-  def handle_info(:print_position, game) do
-    IO.write Formatter.format_game(game)
+  def handle_info(:print_position, state) do
+    size = TTY.get_size(state.tty_pid)
+    viewport = Game.get_viewport(state.game, size)
+    IO.write Formatter.format_game(viewport)
     Process.send_after(self, :print_position, 50)
-    {:noreply, game}
+    {:noreply, state}
   end
 
 end
