@@ -1,12 +1,8 @@
 defmodule SSHnakes.Player do
-  require Logger
   use GenServer
-
-  alias __MODULE__, as: State
   alias SSHnakes.TTY
   alias SSHnakes.Formatter
-
-  defstruct [:x, :y, :board]
+  alias SSHnakes.Game
 
   # API
   def start_link(args) do
@@ -23,36 +19,18 @@ defmodule SSHnakes.Player do
   # Implementation
 
   def init(_args) do
-    x = 10
-    y = 12
-    {:ok, %State{x: x, y: y, board: %{{x,y} => "x"}}}
+    game = Game.new
+    {:ok, game}
   end
 
-  def handle_cast({:move, :up}, %State{y: y} = state) do
-    {:noreply, %State{state | y: y - 1}}
+  def handle_cast({:move, direction}, game) do
+    {:noreply, Game.move_player(game, direction)}
   end
 
-  def handle_cast({:move, :down}, %State{y: y} = state) do
-    {:noreply, %State{state | y: y + 1}}
-  end
-
-  def handle_cast({:move, :left}, %State{x: x} = state) do
-    {:noreply, %State{state | x: x - 1}}
-  end
-
-  def handle_cast({:move, :right}, %State{x: x} = state) do
-    {:noreply, %State{state | x: x + 1}}
-  end
-
-  def handle_cast({:move, dir}, state) do
-    Logger.info("Don't know how to move #{dir}")
-    {:noreply, state}
-  end
-
-  def handle_info(:print_position, %State{x: x, y: y, board: board} = state) do
-    IO.write Formatter.format_game(x, y)
+  def handle_info(:print_position, game) do
+    IO.write Formatter.format_game(game)
     Process.send_after(self, :print_position, 50)
-    {:noreply, state}
+    {:noreply, game}
   end
 
 end
