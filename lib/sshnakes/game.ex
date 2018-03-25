@@ -1,58 +1,45 @@
 defmodule SSHnakes.Game do
-  require Logger
   alias __MODULE__
+  alias SSHnakes.Game.Impl
+  alias SSHnakes.Game.Player
+  use GenServer
+
   defstruct [:player, :pellets]
-  @width 1000
-  @height 1000
 
-  def new do
-    pellets = for i <- 0..10000 do
-       random_point
-    end
-    player = random_point
+  @name __MODULE__
+  @tickrate 100
 
-    # Make sure the player doesn't start on a pellet
-   # pellets = Enum.reject(&Kernel.==(&1, player))
-
-    %Game{player: player, pellets: pellets}
+  # API
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args, name: @name)
   end
 
-  def get_viewport(%Game{player: {player_x, player_y} , pellets: pellets}, {width, height}) do
-    {origin_x, origin_y} = {player_x - div(width,2), player_y - div(height,2)}
-    translated_pellets = pellets
-    |> Stream.reject(fn {x,y} ->
-      x < origin_x || x > origin_x + width ||
-      y < origin_y || y > origin_y + height
-    end)
-    |> Stream.map(fn {x,y} ->
-      {x - origin_x, y - origin_y}
-    end)
-
-    %Game{pellets: translated_pellets, player: {div(width,2), div(height,2)}}
+  def turn_player(direction) do
+    GenServer.cast(@name, {:turn_player, direction})
   end
 
-  def move_player(%Game{player: {x, y}} = game, :up) do
-    %Game{game | player: {x, y-1}}
+  def get_viewport(size) do
+    GenServer.call(@name, {:get_viewport, size})
   end
 
-  def move_player(%Game{player: {x, y}} = game, :right) do
-    %Game{game | player: {x+1, y}}
+  # Implementation
+  def init(_args) do
+    game = Impl.new
+    send(self, :tick)
+    {:ok, game}
   end
 
-  def move_player(%Game{player: {x, y}} = game, :down) do
-    %Game{game | player: {x, y+1}}
+  def handle_cast({:turn_player, direction}, %Game{player: player} = game) do
+    player = Player.turn(player, direction)
+    {:noreply, %{game | player: player}}
   end
 
-  def move_player(%Game{player: {x, y}} = game, :left) do
-    %Game{game | player: {x-1, y}}
+  def handle_call({:get_viewport, size}, _from, game) do
+    {:reply, Impl.get_viewport(game, size), game}
   end
 
-  def handle_cast(game, direction) do
-    Logger.info("Don't know how to move #{direction}")
-    game
-  end
-
-  defp random_point do
-    {Enum.random(0..@width), Enum.random(0..@height)}
+  def handle_info(:tick, game) do
+    Process.send_after(self, :tick, @tickrate)
+    {:noreply, Impl.do_tick(game)}
   end
 end

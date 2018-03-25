@@ -10,7 +10,8 @@ defmodule SSHnakes.Application do
     children = [
       # Starts a worker by calling: SSHnakes.Worker.start_link(arg)
       # {SSHnakes.Worker, arg},
-      {SSHnakes.Player, []}
+      {SSHnakes.Game, []},
+      {SSHnakes.Client, []}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
