@@ -18,8 +18,8 @@ defmodule SSHnakes.Game do
     GenServer.call(@name, :spawn_player)
   end
 
-  def turn_player(direction) do
-    GenServer.cast(@name, {:turn_player, direction})
+  def turn_player(pid, direction) do
+    GenServer.cast(@name, {:turn_player, pid, direction})
   end
 
   def get_viewport(size) do
@@ -37,13 +37,13 @@ defmodule SSHnakes.Game do
     {:reply, :ok, Impl.spawn_player(game, pid)}
   end
 
-  def handle_cast({:turn_player, direction}, %Game{players: players} = game) do
-    #player = Player.turn(player, direction)
+  def handle_cast({:turn_player, pid, direction}, %Game{players: players} = game) do
+    players = Map.update!(players, pid, &Player.turn(&1, direction))
     {:noreply, %{game | players: players}}
   end
 
-  def handle_call({:get_viewport, size}, _from, game) do
-    {:reply, Impl.get_viewport(game, size), game}
+  def handle_call({:get_viewport, size}, {pid, _tag}, game) do
+    {:reply, Impl.get_viewport(game, pid, size), game}
   end
 
   def handle_info(:tick, game) do

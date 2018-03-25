@@ -25,7 +25,7 @@ defmodule SSHnakes.Client do
   def handle_info({port, {:data, data}}, %Client{port: port} = state) do
     case translate(data) do
       :unknown -> nil
-      direction -> Game.turn_player(direction)
+      direction -> Game.turn_player(self(), direction)
     end
     {:noreply, state}
   end
