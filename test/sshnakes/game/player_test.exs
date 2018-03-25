@@ -8,6 +8,7 @@ defmodule SSHnakes.Game.PlayerTest do
     player = new({1,2})
     assert player.position == {1,2}
     assert player.tail == []
+    assert player.state == :alive
   end
 
   test "new/2" do
@@ -15,6 +16,7 @@ defmodule SSHnakes.Game.PlayerTest do
     assert player.position == {1,2}
     assert player.direction == :right
     assert player.tail == []
+    assert player.state == :alive
   end
 
   test "new/3" do
@@ -22,6 +24,7 @@ defmodule SSHnakes.Game.PlayerTest do
     assert player.position == {1,2}
     assert player.direction == :right
     assert player.tail == [{1,3}]
+    assert player.state == :alive
   end
 
   test "turn/2" do
@@ -49,5 +52,10 @@ defmodule SSHnakes.Game.PlayerTest do
     assert  big_player == %{player | position: peek_move(player), tail: [player.position]}
     bigger_player = grow(big_player)
     assert  bigger_player == %{player | position: peek_move(big_player), tail: [big_player.position, player.position]}
+  end
+
+  test "kill/1" do
+    player = new({1,2}, :left, [{1,3}])
+    assert kill(player) == %{player | position: {0,0}, tail: [], state: :dead}
   end
 end

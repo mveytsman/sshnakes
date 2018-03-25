@@ -95,9 +95,39 @@ defmodule SSHnakes.Game.ImplTest do
                  pellets: %{}} = game
   end
 
-  test "detect_collisions/1" do
+  describe "detect_collisions/1" do
+    setup do
+      %{pid1: new_pid(), pid2: new_pid(), game: new([])}
+    end
 
-    player = Player.new({10,10}, :left, [{11, 10}, {12, 10}, {13, 10}, {14, 10}, {15, 10}])
+    test "no collisions", c do
+      game = c[:game]
+      |> spawn_player(c[:pid1], {10,10}, :left,[{10,9}])
+      |> spawn_player(c[:pid2], {10,8}, :left, [])
 
+      assert detect_collisions(game) == game
+    end
+
+    test "head to tail", c do
+      game = c[:game]
+      |> spawn_player(c[:pid1], {10,10}, :left,[{10,9}])
+      |> spawn_player(c[:pid2], {10,9}, :left, [])
+
+      new_game = detect_collisions(game)
+      assert new_game.players[c[:pid1]] == game.players[c[:pid1]]
+      assert new_game.players[c[:pid2]].state == :dead
+      assert new_game.pellets == make_pellets([{10,9}])
+    end
+
+    test "head to head", c do
+      game = c[:game]
+      |> spawn_player(c[:pid1], {10,10}, :left,[{10,9}])
+      |> spawn_player(c[:pid2], {10,10}, :left, [])
+
+      new_game = detect_collisions(game)
+      assert new_game.players[c[:pid1]].state == :dead
+      assert new_game.players[c[:pid2]].state == :dead
+      assert new_game.pellets == make_pellets([{10,9}, {10,10}])
+    end
   end
 end

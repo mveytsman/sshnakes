@@ -4,9 +4,9 @@ defmodule SSHnakes.Game.Impl do
   alias SSHnakes.Game
   alias SSHnakes.Game.Player
 
-  @width 1000
-  @height 1000
-  def new(pellet_coords \\ random_points(10000)) do
+  @width 100
+  @height 100
+  def new(pellet_coords \\ random_points(1000)) do
     pellets = make_pellets(pellet_coords)
     %Game{pellets: pellets, players: %{}}
   end
@@ -48,6 +48,7 @@ defmodule SSHnakes.Game.Impl do
   def do_tick(game) do
     game
     |> move_players
+    |> detect_collisions
   end
 
   def move_players(%Game{players: players, pellets: pellets} = game) do
@@ -55,7 +56,13 @@ defmodule SSHnakes.Game.Impl do
     %{game | players: players, pellets: pellets}
   end
 
+  def detect_collisions(%Game{players: players, pellets: pellets} = game) do
+    {players, pellets, _} = Enum.reduce(players, {%{}, pellets, players}, &do_detect_collisions/2)
+    %{game | players: players, pellets: pellets}
+  end
+
   def make_pellets(pellet_coords), do: Map.new(pellet_coords, fn pos -> {pos, true} end)
+  def add_pellets(pellets, pellet_coords), do: Map.merge(pellets, make_pellets(pellet_coords))
 
   defp random_point do
     {Enum.random(0..@width), Enum.random(0..@height)}
@@ -83,5 +90,20 @@ defmodule SSHnakes.Game.Impl do
       _ ->
         {Map.put(players, pid, Player.move(player)), pellets}
     end
+  end
+
+  defp do_detect_collisions({pid, player}, {new_players, pellets, old_players}) do
+    others = Map.delete(old_players, pid)
+    case Enum.find(others, fn {pid, other} -> players_collided?(player, other) end) do
+      nil ->  {Map.put(new_players, pid, player), pellets, old_players}
+      _ ->
+        pellets = add_pellets(pellets, [player.position | player.tail])
+        {Map.put(new_players, pid, Player.kill(player)), pellets, old_players}
+    end
+  end
+
+  defp players_collided?(player1, player2) do
+    #check if player1 collided with player2
+    player1.position == player2.position or player1.position in player2.tail
   end
 end

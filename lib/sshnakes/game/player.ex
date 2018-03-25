@@ -4,7 +4,7 @@ defmodule SSHnakes.Game.Player do
 
   @directions [:up, :right, :down, :left]
 
-  defstruct [:position, :direction, :tail]
+  defstruct [:position, :direction, :tail, state: :alive]
 
   def new(position, direction \\ random_direction(), tail \\ []) do
     %Player{position: position, direction: direction, tail: tail}
@@ -36,6 +36,10 @@ defmodule SSHnakes.Game.Player do
   def grow(%Player{position: pos, direction: direction, tail: tail} = player) do
     new_pos = peek_move(player)
     %{player | position: new_pos, tail: [pos | tail]}
+  end
+
+  def kill(player) do
+    %{player | state: :dead, position: {0,0}, tail: []}
   end
 
   def random_direction do
