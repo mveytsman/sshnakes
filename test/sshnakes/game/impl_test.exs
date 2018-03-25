@@ -1,5 +1,5 @@
 defmodule SSHnakes.Game.ImplTest do
-  use ExUnit.Case, async: true
+  use SSHnakes.TestCase, async: true
 
   import SSHnakes.Game.Impl
   alias SSHnakes.Game
@@ -60,17 +60,9 @@ defmodule SSHnakes.Game.ImplTest do
   end
 
   test "translate_player/3" do
-    player = Player.new({15,10}, :left)
-    |> Player.grow
-    |> Player.grow
-    |> Player.grow
-    |> Player.grow
-    |> Player.grow
+    player = Player.new({10,10}, :left, [{11, 10}, {12, 10}, {13, 10}, {14, 10}, {15, 10}])
 
-    # We moved the player as we grew it so it's at {10,10} now
-    assert player.position == {10,10}
-    assert player.tail == [{11, 10}, {12, 10}, {13, 10}, {14, 10}, {15, 10}]
-
+    # The player fits in the viewport
     translated_player = translate_player(player, {5,5}, {10,10})
     assert translated_player.position == {5,5}
     assert translated_player.tail == [{6, 5}, {7, 5}, {8, 5}, {9, 5}, {10, 5}]
@@ -87,7 +79,7 @@ defmodule SSHnakes.Game.ImplTest do
   end
 
   test "move_players/1" do
-    pid = spawn(fn -> true end)
+    pid = new_pid
     game = new([{8,10}])
     |> spawn_player(pid, {10,10}, :left)
 
@@ -101,5 +93,11 @@ defmodule SSHnakes.Game.ImplTest do
     game = move_players(game)
     assert %Game{players: %{^pid => %Player{position: {8, 10}, tail: [{9,10}]}},
                  pellets: %{}} = game
+  end
+
+  test "detect_collisions/1" do
+
+    player = Player.new({10,10}, :left, [{11, 10}, {12, 10}, {13, 10}, {14, 10}, {15, 10}])
+
   end
 end

@@ -1,5 +1,5 @@
 defmodule SSHnakes.Game.PlayerTest do
-  use ExUnit.Case, async: true
+  use SSHnakes.TestCase, async: true
 
   import SSHnakes.Game.Player
   alias SSHnakes.Game.Player

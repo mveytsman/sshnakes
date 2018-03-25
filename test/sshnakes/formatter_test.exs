@@ -1,5 +1,5 @@
 defmodule SSHnakes.FormatterTest do
-  use ExUnit.Case, async: true
+  use SSHnakes.TestCase, async: true
   alias IO.ANSI
   alias SSHnakes.Game.Player
   alias SSHnakes.Game.Impl
@@ -7,9 +7,8 @@ defmodule SSHnakes.FormatterTest do
 
   test "format_viewport/1" do
     # we need some dummy pids for our players
-    pid1 = spawn(fn -> nil end)
-    pid2 = spawn(fn -> nil end)
-
+    pid1 = new_pid
+    pid2 = new_pid
     viewport = Impl.new([{1,2}])
     |> Impl.spawn_player(pid1, {7,8})
     |> Impl.spawn_player(pid2, {9,10})
@@ -44,8 +43,8 @@ defmodule SSHnakes.FormatterTest do
 
   test "format_players/1" do
     # we need some dummy pids for our players
-    pid1 = spawn(fn -> nil end)
-    pid2 = spawn(fn -> nil end)
+    pid1 = new_pid
+    pid2 = new_pid
     player1 = Player.new({1,2}, :right)
     player2 = Player.new({3,4}, :right)
     players = %{pid1 => player1, pid2 => player2}
