@@ -37,12 +37,20 @@ defmodule SSHnakes.Game.ImplTest do
     assert %Player{position: {8,9}} = game.players[self()]
   end
 
-  test "spawn_player/5" do
+  test "spawn_player/4" do
     game = new()
     |> spawn_player(self(), {8,9}, :up)
 
     assert Enum.count(game.players) == 1
     assert %Player{position: {8,9}, direction: :up} = game.players[self()]
+  end
+
+  test "spawn_player/5" do
+    game = new()
+    |> spawn_player(self(), {8,9}, :up, [{8,8}])
+
+    assert Enum.count(game.players) == 1
+    assert %Player{position: {8,9}, direction: :up, tail: [{8,8}]} = game.players[self()]
   end
 
   test "translate_pellets/3" do
@@ -94,5 +102,4 @@ defmodule SSHnakes.Game.ImplTest do
     assert %Game{players: %{^pid => %Player{position: {8, 10}, tail: [{9,10}]}},
                  pellets: %{}} = game
   end
-
 end

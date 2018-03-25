@@ -6,8 +6,8 @@ defmodule SSHnakes.Game.Player do
 
   defstruct [:position, :direction, :tail]
 
-  def new(position, direction \\ random_direction()) do
-    %Player{position: position, direction: direction, tail: []}
+  def new(position, direction \\ random_direction(), tail \\ []) do
+    %Player{position: position, direction: direction, tail: tail}
   end
 
   def turn(player, direction) do

@@ -17,6 +17,13 @@ defmodule SSHnakes.Game.PlayerTest do
     assert player.tail == []
   end
 
+  test "new/3" do
+    player = new({1,2}, :right, [{1,3}])
+    assert player.position == {1,2}
+    assert player.direction == :right
+    assert player.tail == [{1,3}]
+  end
+
   test "turn/2" do
     player = new({1,2}, :right)
     for dir <- [:up, :right, :down, :left] do

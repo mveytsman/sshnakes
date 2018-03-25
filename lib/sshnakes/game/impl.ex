@@ -11,8 +11,8 @@ defmodule SSHnakes.Game.Impl do
     %Game{pellets: pellets, players: %{}}
   end
 
-  def spawn_player(%Game{players: players} = game, pid, player_pos \\ random_point(), player_direction \\ Player.random_direction()) do
-    player = Player.new(player_pos, player_direction)
+  def spawn_player(%Game{players: players} = game, pid, player_pos \\ random_point(), player_direction \\ Player.random_direction(), player_tail \\ []) do
+    player = Player.new(player_pos, player_direction, player_tail)
     %{game | players: Map.put(players, pid, player)}
   end
 
