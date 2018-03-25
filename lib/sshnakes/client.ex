@@ -17,6 +17,7 @@ defmodule SSHnakes.Client do
   # Implementation
   def init(_args) do
     port = Port.open({:spawn, "tty_sl -c -e"}, [:binary, :eof])
+    SSHnakes.Game.spawn_player
     send(self, :tick)
     {:ok, %Client{port: port}}
   end

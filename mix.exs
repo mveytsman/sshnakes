@@ -7,7 +7,8 @@ defmodule SSHnakes.MixProject do
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      aliases: aliases(),
+      deps: deps(),
     ]
   end
 
@@ -16,6 +17,12 @@ defmodule SSHnakes.MixProject do
     [
       extra_applications: [:logger],
       mod: {SSHnakes.Application, []}
+    ]
+  end
+
+  defp aliases do
+    [
+      test: "test --no-start"
     ]
   end
 

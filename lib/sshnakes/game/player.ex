@@ -6,8 +6,8 @@ defmodule SSHnakes.Game.Player do
 
   defstruct [:position, :direction, :tail]
 
-  def new(position) do
-    %Player{position: position, direction: random_direction, tail: []}
+  def new(position, direction \\ random_direction()) do
+    %Player{position: position, direction: direction, tail: []}
   end
 
   def turn(player, direction) do
@@ -30,7 +30,7 @@ defmodule SSHnakes.Game.Player do
 
   def move(%Player{position: pos, direction: direction, tail: tail} = player) do
     new_pos = peek_move(player)
-    %{player | position: new_pos, tail: [pos | Enum.drop(tail, -1)]}
+    %{player | position: new_pos, tail: Enum.drop([pos | tail], -1)}
   end
 
   def grow(%Player{position: pos, direction: direction, tail: tail} = player) do
@@ -38,7 +38,7 @@ defmodule SSHnakes.Game.Player do
     %{player | position: new_pos, tail: [pos | tail]}
   end
 
-  defp random_direction do
+  def random_direction do
     Enum.random(@directions)
   end
 end

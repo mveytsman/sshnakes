@@ -6,29 +6,32 @@ defmodule SSHnakes.Game.Impl do
 
   @width 1000
   @height 1000
-  def new do
-    pellets = for _ <- 0..10000 do
-       {random_point(), true}
-    end |> Map.new
-    player = Player.new(random_point())
-
-    %Game{pellets: pellets, player: player}
+  def new(pellet_coords \\ random_points(10000)) do
+    pellets = make_pellets(pellet_coords)
+    %Game{pellets: pellets, players: %{}}
   end
 
-  def get_viewport(%Game{player: player, pellets: pellets} = game, {width, height} = size) do
+  def spawn_player(%Game{players: players} = game, pid, player_pos \\ random_point(), player_direction \\ Player.random_direction()) do
+    player = Player.new(player_pos, player_direction)
+    %{game | players: Map.put(players, pid, player)}
+  end
+
+  def get_viewport(%Game{players: players, pellets: pellets} = game, pid, {width, height} = size) do
+    player = players[pid]
     {player_x, player_y} = player.position
-    origin = {player_x - div(width,2), player_y - div(height,2)}
+    origin = {player_x - div(width, 2), player_y - div(height, 2)}
 
     player = translate_player(player, origin, size)
     pellets = translate_pellets(pellets, origin, size)
 
-    %Game{pellets: pellets, player: player}
+    %Game{pellets: pellets, players: Map.put(players, pid, player)}
   end
 
   def translate_pellets(pellets, origin, size) do
     for {pos, v} <- pellets, in_viewport?(pos, origin, size) do
       {translate(pos, origin), v}
-    end |> Map.new
+    end
+    |> Map.new()
   end
 
   def translate_player(%Player{position: position, tail: tail} = player, origin, size) do
@@ -39,29 +42,41 @@ defmodule SSHnakes.Game.Impl do
 
   def do_tick(game) do
     game
-    |> move_player
+    |> move_players
   end
 
-  def move_player(%Game{player: player, pellets: pellets} = game) do
-    new_pos = Player.peek_move(player)
-    case pellets[new_pos] do
-      true -> %{game | player: Player.grow(player), pellets: Map.delete(pellets, new_pos)}
-      _ -> %{game | player: Player.move(player)}
-    end
+  def move_players(%Game{players: players, pellets: pellets} = game) do
+    {players, pellets} = Enum.reduce(players, {%{}, pellets}, &do_move_players/2)
+    %{game | players: players, pellets: pellets}
   end
+
+  def make_pellets(pellet_coords), do: Map.new(pellet_coords, fn pos -> {pos, true} end)
 
   defp random_point do
     {Enum.random(0..@width), Enum.random(0..@height)}
   end
 
-  defp in_viewport?({x,y}, {origin_x, origin_y}, {width, height}) do
-    x >= origin_x &&
-    x <= origin_x + width &&
-    y >= origin_y &&
-    y <= origin_y + height
+  defp random_points(count) do
+    for _ <- 0..count do
+      random_point()
+    end
   end
 
-  defp translate({x,y}, {origin_x, origin_y}) do
+  defp in_viewport?({x, y}, {origin_x, origin_y}, {width, height}) do
+    x >= origin_x && x <= origin_x + width && y >= origin_y && y <= origin_y + height
+  end
+
+  defp translate({x, y}, {origin_x, origin_y}) do
     {x - origin_x, y - origin_y}
+  end
+
+  defp do_move_players({pid, player}, {players, pellets}) do
+    new_pos = Player.peek_move(player)
+    case pellets[new_pos] do
+      true ->
+        {Map.put(players, pid, Player.grow(player)), Map.delete(pellets, new_pos)}
+      _ ->
+        {Map.put(players, pid, Player.move(player)), pellets}
+    end
   end
 end

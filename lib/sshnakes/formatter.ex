@@ -1,14 +1,23 @@
 defmodule SSHnakes.Formatter do
+  @moduledoc """
+  Formats Games into IO Lists that can then be written to an interface
+  """
   alias IO.ANSI
   alias SSHnakes.Game
   alias SSHnakes.Game.Player
 
-  def format_viewport(%Game{pellets: pellets, player: player}) do
+  @doc """
+  Formats a viewport.
+
+  A viewport is a %Game{} struct with only the objects we can see it in it,
+  their coordinates translated such that our player is at the center
+  """
+  def format_viewport(%Game{pellets: pellets, players: players}) do
     [ANSI.clear,
     format_pellets(pellets),
-    format_player(player),
+    format_players(players),
     ANSI.reset,
-     ANSI.home]
+    ANSI.home]
   end
 
   def format_pellets(pellets) do
@@ -24,6 +33,12 @@ defmodule SSHnakes.Formatter do
     end
 
     [head, tail]
+  end
+
+  def format_players(players) do
+    players
+    |> Map.values()
+    |> Enum.map(&format_player/1)
   end
 
   defp cursor(column, line)
