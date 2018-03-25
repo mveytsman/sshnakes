@@ -11,7 +11,8 @@ defmodule SSHnakes.Application do
       # Starts a worker by calling: SSHnakes.Worker.start_link(arg)
       # {SSHnakes.Worker, arg},
       {SSHnakes.Game, []},
-      {SSHnakes.Client, []}
+      {SSHnakes.Client, []},
+      {DynamicSupervisor, name: SSHnakes.AI.Supervisor, strategy: :one_for_one}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

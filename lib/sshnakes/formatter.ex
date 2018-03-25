@@ -26,8 +26,11 @@ defmodule SSHnakes.Formatter do
     end
   end
 
-  def format_player(%Player{position: {x,y}, tail: tail}) do
-    head = [cursor(x,y), "@"]
+  def format_player(%Player{position: position, tail: tail}) do
+    head = case position do
+      {x,y} -> [cursor(x,y), "@"]
+      nil -> []
+    end
     tail = for {x,y} <- tail do
       [cursor(x,y), "o"]
     end

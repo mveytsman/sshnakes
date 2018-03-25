@@ -21,10 +21,12 @@ defmodule SSHnakes.Game.Impl do
     {player_x, player_y} = player.position
     origin = {player_x - div(width, 2), player_y - div(height, 2)}
 
-    player = translate_player(player, origin, size)
+    players = for {key, player} <- players do
+      {key, translate_player(player, origin, size)}
+    end |> Map.new
     pellets = translate_pellets(pellets, origin, size)
 
-    %Game{pellets: pellets, players: Map.put(players, pid, player)}
+    %Game{pellets: pellets, players: players}
   end
 
   def translate_pellets(pellets, origin, size) do
@@ -35,7 +37,10 @@ defmodule SSHnakes.Game.Impl do
   end
 
   def translate_player(%Player{position: position, tail: tail} = player, origin, size) do
-    position = translate(position, origin)
+    position = case in_viewport?(position, origin, size) do
+      true -> translate(position, origin)
+      false -> nil
+    end
     tail = for pos <- tail, in_viewport?(pos, origin, size), do: translate(pos, origin)
     %{player | position: position, tail: tail}
   end

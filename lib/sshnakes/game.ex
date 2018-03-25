@@ -18,8 +18,16 @@ defmodule SSHnakes.Game do
     GenServer.call(@name, :spawn_player)
   end
 
+  def spawn_ai(pos) do
+    {:ok, pid} = DynamicSupervisor.start_child(SSHnakes.AI.Supervisor, {SSHnakes.AI, []})
+  end
+
   def turn_player(pid, direction) do
     GenServer.cast(@name, {:turn_player, pid, direction})
+  end
+
+  def get_game() do
+    GenServer.call(@name, :get_game)
   end
 
   def get_viewport(size) do
@@ -40,6 +48,10 @@ defmodule SSHnakes.Game do
   def handle_cast({:turn_player, pid, direction}, %Game{players: players} = game) do
     players = Map.update!(players, pid, &Player.turn(&1, direction))
     {:noreply, %{game | players: players}}
+  end
+
+  def handle_call(:get_game, {pid, _tag}, game) do
+    {:reply, game, game}
   end
 
   def handle_call({:get_viewport, size}, {pid, _tag}, game) do

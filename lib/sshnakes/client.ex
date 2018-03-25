@@ -25,6 +25,7 @@ defmodule SSHnakes.Client do
   def handle_info({port, {:data, data}}, %Client{port: port} = state) do
     case translate(data) do
       :unknown -> nil
+      :spawn_ai -> Game.spawn_ai({0,0})
       direction -> Game.turn_player(self(), direction)
     end
     {:noreply, state}
@@ -44,6 +45,7 @@ defmodule SSHnakes.Client do
       "\e[B" -> :down
       "\e[C" -> :right
       "\e[D" -> :left
+      "x"    -> :spawn_ai
       _ -> :unknown
     end
   end

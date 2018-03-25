@@ -71,6 +71,11 @@ defmodule SSHnakes.Game.ImplTest do
     translated_player = translate_player(player, {9,9}, {3,3})
     assert translated_player.position == {1,1}
     assert translated_player.tail == [{2, 1}, {3, 1}]
+
+    # We may not see the head
+    translated_player = translate_player(player, {11,10}, {10,10})
+    assert translated_player.position == nil
+    assert translated_player.tail == [{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}]
   end
 
   test "move_players/1" do

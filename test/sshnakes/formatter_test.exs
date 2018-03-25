@@ -36,6 +36,10 @@ defmodule SSHnakes.FormatterTest do
 
     player = Player.grow(player)
     assert format_player(player) == [["\e[2;2H", "@"], [["\e[2;1H", "o"]]]
+
+    # Sometimes we have a player without a head
+    player = %{player | position: nil}
+    assert format_player(player) == [[], [["\e[2;1H", "o"]]]
   end
 
   test "format_players/1" do
