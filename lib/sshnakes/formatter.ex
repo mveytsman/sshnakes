@@ -1,9 +1,7 @@
 defmodule SSHnakes.Formatter do
   alias IO.ANSI
-  alias SSHnakes.Game
-  alias SSHnakes.Game.Player
 
-  def format_viewport(%Game{pellets: pellets, player: player}) do
+  def format_viewport(%{pellets: pellets, player: player}) do
     [ANSI.clear,
     format_pellets(pellets),
     format_player(player),
@@ -17,7 +15,7 @@ defmodule SSHnakes.Formatter do
     end
   end
 
-  def format_player(%Player{position: {x,y}}) do
+  def format_player({x,y}) do
     [cursor(x,y), "X"]
   end
 

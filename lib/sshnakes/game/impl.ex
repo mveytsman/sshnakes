@@ -8,16 +8,18 @@ defmodule SSHnakes.Game.Impl do
   @height 1000
   def new do
     pellets = for _ <- 0..10000 do
-       random_point
-    end
-    player = Player.new(random_point)
+       {random_point(), true}
+    end |> Map.new
+    player = Player.new(random_point())
+
     %Game{pellets: pellets, player: player}
   end
 
   def get_viewport(%Game{player: player, pellets: pellets}, {width, height}) do
     {player_x, player_y} = player.position
     {origin_x, origin_y} = {player_x - div(width,2), player_y - div(height,2)}
-    translated_pellets = pellets
+    translated_pellet_coords = pellets
+    |> Map.keys
     |> Stream.reject(fn {x,y} ->
       x < origin_x || x > origin_x + width ||
       y < origin_y || y > origin_y + height
@@ -26,9 +28,9 @@ defmodule SSHnakes.Game.Impl do
       {x - origin_x, y - origin_y}
     end)
 
-    translated_player = %{player | position: {div(width,2), div(height,2)}}
+    translated_player_coords = {div(width,2), div(height,2)}
 
-    %Game{pellets: translated_pellets, player: translated_player}
+    %{pellets: translated_pellet_coords, player: translated_player_coords}
   end
 
   def do_tick(game) do
