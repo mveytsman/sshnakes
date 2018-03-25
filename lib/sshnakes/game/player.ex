@@ -4,21 +4,10 @@ defmodule SSHnakes.Game.Player do
 
   @directions [:up, :right, :down, :left]
 
-  defstruct [:position, :direction]
+  defstruct [:position, :direction, :tail]
 
   def new(position) do
-    %Player{position: position, direction: random_direction}
-  end
-
-  def move(%Player{position: {x, y}, direction: direction} = player) do
-    position = case direction do
-      :up -> {x, y-1}
-      :right -> {x+1, y}
-      :down -> {x, y+1}
-      :left -> {x-1, y}
-      _ -> {x, y}
-    end
-    %{player | position: position}
+    %Player{position: position, direction: random_direction, tail: []}
   end
 
   def turn(player, direction) do
@@ -28,7 +17,25 @@ defmodule SSHnakes.Game.Player do
       Logger.info("Don't know how to to turn to #{direction}")
       player
     end
+  end
 
+  def peek_move(%Player{position: {x,y}, direction: direction}) do
+    case direction do
+      :up -> {x, y-1}
+      :right -> {x+1, y}
+      :down -> {x, y+1}
+      :left -> {x-1, y}
+    end
+  end
+
+  def move(%Player{position: pos, direction: direction, tail: tail} = player) do
+    new_pos = peek_move(player)
+    %{player | position: new_pos, tail: [pos | Enum.drop(tail, -1)]}
+  end
+
+  def grow(%Player{position: pos, direction: direction, tail: tail} = player) do
+    new_pos = peek_move(player)
+    %{player | position: new_pos, tail: [pos | tail]}
   end
 
   defp random_direction do

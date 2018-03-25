@@ -7,7 +7,7 @@ defmodule SSHnakes.Game do
   defstruct [:player, :pellets]
 
   @name __MODULE__
-  @tickrate 100
+  @tickrate 125
 
   # API
   def start_link(args) do
