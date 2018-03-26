@@ -5,36 +5,51 @@ defmodule SSHnakes.Client do
   alias SSHnakes.Game
   alias SSHnakes.Formatter
 
-  defstruct [:port]
+  defstruct [:cli_pid, :width, :height]
 
-  @framerate 100
+  @framerate 130
 
   # API
   def start_link(args) do
     GenServer.start_link(__MODULE__, args)
   end
 
+  def send_data(pid, data) do
+    GenServer.cast(pid, {:data, data})
+  end
+
+  def resize(pid, width, height) do
+    GenServer.cast(pid, {:resize, width, height})
+  end
+
   # Implementation
-  def init(_args) do
-    port = Port.open({:spawn, "tty_sl -c -e"}, [:binary, :eof])
+  def init([cli_pid, width, height]) do
     SSHnakes.Game.spawn_player
     send(self, :tick)
-    {:ok, %Client{port: port}}
+    {:ok, %Client{cli_pid: cli_pid, width: width, height: height}}
   end
 
-  def handle_info({port, {:data, data}}, %Client{port: port} = state) do
+  def handle_cast({:data, data}, state) do
     case translate(data) do
-      :unknown -> nil
-      :spawn_ai -> Game.spawn_ai({0,0})
-      direction -> Game.turn_player(self(), direction)
+      :unknown -> {:noreply, state}
+      :spawn_ai ->
+        Game.spawn_ai({0,0})
+        {:noreply, state}
+      :quit -> {:stop, :normal, state}
+      direction ->
+        Game.turn_player(self(), direction)
+        {:noreply, state}
     end
-    {:noreply, state}
   end
 
-  def handle_info(:tick, %Client{port: port} = state) do
-    Game.get_viewport(get_size(port))
-    |> Formatter.format_viewport
-    |> IO.write
+  def handle_cast({:resize, width, height}, state) do
+    {:noreply, %{state | width: width, height: height}}
+  end
+
+  def handle_info(:tick, %Client{cli_pid: cli_pid, width: width, height: height} = state) do
+    data = Game.get_viewport({width, height})
+    |> Formatter.format_viewport()
+    SSHnakes.SSH.Cli.send_data(cli_pid, data)
     Process.send_after(self, :tick, @framerate)
     {:noreply, state}
   end
@@ -46,16 +61,8 @@ defmodule SSHnakes.Client do
       "\e[C" -> :right
       "\e[D" -> :left
       "x"    -> :spawn_ai
+      "q"    -> :quit
       _ -> :unknown
     end
-  end
-
-  defp get_size(port) do
-    # `:io.columns` / `io.lines` doesn't work here because our TTY is captured by the port, so we have to use this
-    # https://github.com/blackberry/Erlang-OTP/blob/master/lib/kernel/src/user_drv.erl#L451-L460
-    # It's not well documented :)
-    <<width::native-integer-size(32), height::native-integer-size(32)>> =  :erlang.port_control(port, 100, []) |> :binary.list_to_bin
-
-   {width, height}
   end
 end

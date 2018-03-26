@@ -1,21 +1,11 @@
 # SSHnakes
 
-**TODO: Add description**
+# Setup
 
-## Installation
+Make sure to create an ssh key
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `sshnakes` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:sshnakes, "~> 0.1.0"}
-  ]
-end
+```bash
+$ mkdir -p "priv/ssh_dir"
+$ ssh-keygen -t rsa -f /tmp/ssh_daemon/ssh_host_rsa_key
 ```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/sshnakes](https://hexdocs.pm/sshnakes).
 

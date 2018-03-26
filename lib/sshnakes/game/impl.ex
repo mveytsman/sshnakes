@@ -4,9 +4,9 @@ defmodule SSHnakes.Game.Impl do
   alias SSHnakes.Game
   alias SSHnakes.Game.Player
 
-  @width 100
-  @height 100
-  def new(pellet_coords \\ random_points(1000)) do
+  @width 500
+  @height 500
+  def new(pellet_coords \\ random_points(10000)) do
     pellets = make_pellets(pellet_coords)
     %Game{pellets: pellets, players: %{}}
   end
